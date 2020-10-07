@@ -1,0 +1,8 @@
+.*
+_*
+*.out
+*.html
+*.test
+*.prof
+cmd/
+bin/
