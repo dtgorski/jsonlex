@@ -18,20 +18,20 @@ go get -u github.com/dtgorski/jsonlex
 package main
 
 import (
-	"bytes"
-	"github.com/dtgorski/jsonlex"
+    "bytes"
+    "github.com/dtgorski/jsonlex"
 )
 
 func main() {
-	reader := bytes.NewReader(...)
+    reader := bytes.NewReader(...)
 
-	lexer := jsonlex.NewLexer(
-		func(token jsonlex.Token, load []byte) {
-			println(token, string(load))
-		},
-	)
+    lexer := jsonlex.NewLexer(
+        func(token jsonlex.Token, load []byte) {
+            println(token, string(load))
+        },
+    )
 
-	lexer.Scan(reader)
+    lexer.Scan(reader)
 }
 ```
 
@@ -65,15 +65,15 @@ goos: linux
 goarch: amd64
 pkg: github.com/dtgorski/jsonlex/bench
 
-Benchmark/ encoding/ json/ 2kB-8        10946     109034 ns/op      36528 B/op       1963 allocs/op
-Benchmark/ encoding/ json/ 20kB-8        1179    1016282 ns/op     318487 B/op      18231 allocs/op
-Benchmark/ encoding/ json/ 200kB-8        128    9403946 ns/op    2882058 B/op     164401 allocs/op
-Benchmark/ encoding/ json/ 2000kB-8        14   79604995 ns/op   23655504 B/op    1319127 allocs/op
+Benchmark/ encoding/ json/ 2kB-8        10946     109034 ns/op      36528 B/op      1963 allocs/op
+Benchmark/ encoding/ json/ 20kB-8        1179    1016282 ns/op     318487 B/op     18231 allocs/op
+Benchmark/ encoding/ json/ 200kB-8        128    9403946 ns/op    2882058 B/op    164401 allocs/op
+Benchmark/ encoding/ json/ 2000kB-8        14   79604995 ns/op   23655504 B/op   1319127 allocs/op
 
-Benchmark/ dtgorski/ jsonlex/ 2kB-8     57790      20546 ns/op        256 B/op         11 allocs/op
-Benchmark/ dtgorski/ jsonlex/ 20kB-8     5874     204287 ns/op       2370 B/op         86 allocs/op
-Benchmark/ dtgorski/ jsonlex/ 200kB-8     602    1989911 ns/op      23803 B/op        630 allocs/op
-Benchmark/ dtgorski/ jsonlex/ 2000kB-8     62   17726113 ns/op     267372 B/op       3977 allocs/op
+Benchmark/ dtgorski/ jsonlex/ 2kB-8     57790      20546 ns/op        256 B/op        11 allocs/op
+Benchmark/ dtgorski/ jsonlex/ 20kB-8     5874     204287 ns/op       2370 B/op        86 allocs/op
+Benchmark/ dtgorski/ jsonlex/ 200kB-8     602    1989911 ns/op      23803 B/op       630 allocs/op
+Benchmark/ dtgorski/ jsonlex/ 2000kB-8     62   17726113 ns/op     267372 B/op      3977 allocs/op
 ```
 
 ### Disclaimer
