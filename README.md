@@ -17,19 +17,22 @@ go get -u github.com/dtgorski/jsonlex
 ```
 package main
 
-import "github.com/dtgorski/jsonlex"
-
-func main() {
-    reader := bytes.NewReader(...)
-
-    lexer := jsonlex.NewLexer(
-        func(token jsonlex.Token, load []byte) {
-            println(token, string(load))
-        },
-    }
+import (
+	"bytes"
+	"github.com/dtgorski/jsonlex"
 )
 
-lexer.Scan(reader)
+func main() {
+	reader := bytes.NewReader(...)
+
+	lexer := jsonlex.NewLexer(
+		func(token jsonlex.Token, load []byte) {
+			println(token, string(load))
+		},
+	)
+
+	lexer.Scan(reader)
+}
 ```
 
 ### Emitted tokens
