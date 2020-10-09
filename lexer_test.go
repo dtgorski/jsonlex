@@ -37,7 +37,7 @@ func TestLexer_Scan_2(t *testing.T) {
 
 // expect standard functionality
 func TestLexer_Scan_3(t *testing.T) {
-	s := ` { "foo": "bar", "b\"az": [ null, true, false, -42 ] } `
+	s := ` { "foo": "bar", "b\"az": [ null, true, false, -42, "false" ] } `
 
 	e := []struct {
 		kind Token
@@ -58,6 +58,8 @@ func TestLexer_Scan_3(t *testing.T) {
 		{kind: TokenLIT, load: []byte(`false`)},
 		{kind: TokenCOM, load: []byte(`,`)},
 		{kind: TokenNUM, load: []byte(`-42`)},
+		{kind: TokenCOM, load: []byte(`,`)},
+		{kind: TokenSTR, load: []byte(`false`)},
 		{kind: TokenRSB, load: []byte(`]`)},
 		{kind: TokenRCB, load: []byte(`}`)},
 		{kind: TokenEOF, load: nil},
