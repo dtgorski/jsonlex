@@ -11,19 +11,19 @@ import (
 	"github.com/dtgorski/jsonlex"
 )
 
-func Benchmarkꤷdtgorskiꤷjsonlexꤷ2kB(b *testing.B) {
+func Benchmark_dtgorski_jsonlex_2kB(b *testing.B) {
 	runLexer(b, "../testdata/2kB.json")
 }
 
-func Benchmarkꤷdtgorskiꤷjsonlexꤷ20kB(b *testing.B) {
+func Benchmark_dtgorski_jsonlex_20kB(b *testing.B) {
 	runLexer(b, "../testdata/20kB.json")
 }
 
-func Benchmarkꤷdtgorskiꤷjsonlexꤷ200kB(b *testing.B) {
+func Benchmark_dtgorski_jsonlex_200kB(b *testing.B) {
 	runLexer(b, "../testdata/200kB.json")
 }
 
-func Benchmarkꤷdtgorskiꤷjsonlexꤷ2000kB(b *testing.B) {
+func Benchmark_dtgorski_jsonlex_2000kB(b *testing.B) {
 	runLexer(b, "../testdata/2000kB.json")
 }
 
