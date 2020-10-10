@@ -10,8 +10,12 @@ import (
 type (
 	// Lexer splits JSON byte stream into tokens.
 	Lexer struct {
-		yield func(token Token, load []byte)
+		yield Yield
 	}
+
+	// Yield is a callback function. It will be invoked
+	// for each token to be found.
+	Yield func(token Token, load []byte, pos uint)
 
 	// Token denotes the type of token.
 	Token uint8
@@ -20,7 +24,7 @@ type (
 // Kinds of tokens emitted by the lexer.
 const (
 	TokenEOF Token = iota // signals end of file/stream
-	TokenERR              // error string
+	TokenERR              // error string (other than EOF)
 	TokenLIT              // literal (true, false, null)
 	TokenNUM              // float number
 	TokenSTR              // "...\"..."
@@ -34,6 +38,11 @@ const (
 	sniffing
 )
 
+// Is is a convenience function.
+func (t Token) Is(token Token) bool {
+	return t == token
+}
+
 // NewLexer takes a callback (yield) function as parameter.
 // This yield function will be invoked for each token
 // consumed from the byte stream by Scan().
@@ -43,14 +52,18 @@ const (
 //    reader := bytes.NewReader(...)
 //
 //    lexer := jsonlex.NewLexer(
-//        func(token jsonlex.Token, load []byte) {
-//            println(token, string(load))
+//        func(token jsonlex.Token, load []byte, pos uint) {
+//
+//            save := make([]byte, len(load))
+//            copy(save, load)
+//
+//            println(pos, token, string(save))
 //        },
 //    )
 //
 //    lexer.Scan(reader)
 //
-func NewLexer(yield func(kind Token, load []byte)) *Lexer {
+func NewLexer(yield Yield) *Lexer {
 	return &Lexer{yield}
 }
 
@@ -62,14 +75,15 @@ func NewLexer(yield func(kind Token, load []byte)) *Lexer {
 func (l *Lexer) Scan(r io.Reader) {
 	var (
 		b    byte   // byte under scrutiny
-		load []byte // token payload
-		tok  Token  // current token
-		pos  uint   // byte position in stream
-
-		hold bool // whether to advance reader
-		frac bool // number fraction mode
-		expo bool // number exponent mode
-		sign bool // exponent sign
+		n    int    // number of bytes read
+		t    Token  // current token or state
+		load []byte // growing token payload
+		bpos uint   // byte position in stream
+		tpos uint   // token position in stream
+		hold bool   // whether to advance reader
+		frac bool   // number fraction mode
+		expo bool   // number exponent mode
+		sign bool   // exponent sign
 
 		esc bool  // string escaping mode
 		eot bool  // end of delimited text
@@ -82,65 +96,67 @@ nextToken:
 	eot, esc = false, false
 
 	load = load[:0]
-	tok = sniffing
+	t = sniffing
 
 nextByte:
 	if hold {
 		hold = false
 	} else {
-		_, err = r.Read(buf)
-		pos++
+		n, err = r.Read(buf)
+		bpos += uint(n)
 	}
 
 	if err != nil {
-		if err == io.EOF && len(load) > 0 && tok == TokenNUM {
+		if err == io.EOF && len(load) > 0 && t.Is(TokenNUM) {
 			goto emitNumToken
 		}
-		if err == io.EOF && len(load) > 0 && tok == TokenLIT {
+		if err == io.EOF && len(load) > 0 && t.Is(TokenLIT) {
 			goto emitLitToken
 		}
 		if err == io.EOF && len(load) > 0 {
 			goto emitToken
 		}
 		if err == io.EOF {
+			tpos = bpos
 			goto emitEofToken
 		}
 		goto emitErrToken
 	}
 
-	if b = buf[0]; tok != sniffing {
-		switch tok {
-		case TokenSTR:
+	if b = buf[0]; t != sniffing {
+		if t.Is(TokenSTR) {
 			goto scanStr
-		case TokenNUM:
-			goto scanNum
-		case TokenLIT:
-			goto scanLit
-		default:
-			goto emitToken
 		}
+		if t.Is(TokenNUM) {
+			goto scanNum
+		}
+		if t.Is(TokenLIT) {
+			goto scanLit
+		}
+		goto emitToken
 	}
 
 	if b == 0x20 || b == '\n' || b == '\r' || b == '\t' {
 		goto nextByte
 	}
 	if b > 0x7F || b < 0x20 {
-		goto emitUnexpErrToken
+		goto emitErrToken
 	}
+
+	tpos = bpos - 1
 	if s := states[b]; s != 0 {
-		tok = s
+		t = s
 		goto consume
 	}
 
-emitUnexpErrToken:
-	err = fmt.Errorf(unexpected, b, b)
-
 emitErrToken:
-	l.yield(TokenERR, []byte(fmt.Sprintf(atposition, err.Error(), pos-1)))
+	if m := fmt.Sprintf("unexpected %q (0x%X)", b, b); true {
+		l.yield(TokenERR, []byte(m), tpos)
+	}
 	return
 
 emitEofToken:
-	l.yield(TokenEOF, nil)
+	l.yield(TokenEOF, nil, tpos)
 	return
 
 emitStrToken:
@@ -148,39 +164,39 @@ emitStrToken:
 	goto emitToken
 
 emitNumToken:
-	if t := load[len(load)-1]; t == '.' || t == '-' || t == 'e' || t == 'E' {
-		goto emitUnexpErrToken
-	}
-	if size := len(load); size == 2 && load[0] == '-' && load[1] == '.' ||
-		size >= 3 && load[0] == '-' && load[1] == '.' && load[2] == 'e' {
-		goto emitUnexpErrToken
+	if n := len(load); true {
+		if b := load[n-1]; true {
+			if b == '.' || b == '-' || b == 'e' || b == 'E' {
+				goto emitErrToken
+			}
+		}
+		if n >= 3 && string(load[:3]) == "-.e" {
+			goto emitErrToken
+		}
 	}
 	goto emitToken
 
 emitLitToken:
-	if s := string(load); s != "null" && s != "true" && s != "false" {
-		goto emitUnexpErrToken
+	if s := string(load); true {
+		if s != "null" && s != "true" && s != "false" {
+			goto emitErrToken
+		}
 	}
 
 emitToken:
 	hold = true
-	l.yield(tok, load)
+	l.yield(t, load, tpos)
 	goto nextToken
 
 scanStr:
-	if esc {
-		esc = false
-		goto consume
-	}
-	if b == '\\' {
-		esc = true
-		goto consume
-	}
-	if b != '"' && !eot {
-		goto consume
-	}
 	if !eot {
-		eot = true
+		if esc {
+			esc = false
+		} else if b == '\\' {
+			esc = true
+		} else if b == '"' {
+			eot = true
+		}
 		goto consume
 	}
 	goto emitStrToken
@@ -214,9 +230,6 @@ consume:
 	load = append(load, b)
 	goto nextByte
 }
-
-const unexpected = "unexpected %q (0x%X)"
-const atposition = "%s at position %d"
 
 var states = [0x80]Token{
 	' ':  0,        // 0x20 space

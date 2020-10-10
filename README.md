@@ -23,11 +23,17 @@ import (
 )
 
 func main() {
-    reader := bytes.NewReader(...)
+    reader := bytes.NewReader(
+        []byte(`{ "foo": "bar", "baz": 42 }`),
+    )
 
     lexer := jsonlex.NewLexer(
-        func(token jsonlex.Token, load []byte) {
-            println(token, string(load))
+        func(token jsonlex.Token, load []byte, pos uint) {
+
+            save := make([]byte, len(load))
+            copy(save, load)
+
+            println(pos, token, string(save))
         },
     )
 
@@ -39,7 +45,7 @@ func main() {
 | [```jsonlex```](https://pkg.go.dev/github.com/dtgorski/jsonlex) | Representation
 | --- | ---
 |```TokenEOF``` | signals end of file/stream
-|```TokenERR``` | error string
+|```TokenERR``` | error string (other than EOF)
 |```TokenLIT``` | literal (```true```, ```false```, ```null```)
 |```TokenNUM``` | float number
 |```TokenSTR``` | "...\\"..."

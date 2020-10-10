@@ -12,8 +12,8 @@ import (
 // expect EOF
 func TestLexer_Scan_1(t *testing.T) {
 	s := ``
-	y := func(kind Token, load []byte) {
-		if kind != TokenEOF {
+	y := func(kind Token, load []byte, pos uint) {
+		if !kind.Is(TokenEOF) {
 			t.Errorf("unexpected %q", load)
 		}
 	}
@@ -25,8 +25,8 @@ func TestLexer_Scan_1(t *testing.T) {
 // expect error, unexpected input
 func TestLexer_Scan_2(t *testing.T) {
 	s := ` * `
-	y := func(kind Token, load []byte) {
-		if kind != TokenERR {
+	y := func(kind Token, load []byte, pos uint) {
+		if !kind.Is(TokenERR) {
 			t.Errorf("unexpected %q", load)
 		}
 	}
@@ -66,8 +66,8 @@ func TestLexer_Scan_3(t *testing.T) {
 	}
 
 	i := 0
-	y := func(kind Token, load []byte) {
-		if e[i].kind != kind {
+	y := func(kind Token, load []byte, pos uint) {
+		if !e[i].kind.Is(kind) {
 			t.Errorf("unexpected %q", kind)
 		}
 		if !bytes.Equal(e[i].load, load) {
@@ -82,9 +82,20 @@ func TestLexer_Scan_3(t *testing.T) {
 
 // expect no errors while tokenizing floats and other valid chars
 func TestLexer_Scan_4(t *testing.T) {
-	s := []string{"-1", "0.1e-20", "1.e+5", "1.0", "1e+1", "-.0E+0", "1E-0", "1E-1", ":"}
-	y := func(kind Token, load []byte) {
-		if kind == TokenERR {
+	s := []string{
+		"-0",
+		"-1",
+		"0.1e-20",
+		"1.e+5",
+		"1.0",
+		"1e+1",
+		"-.0E+0",
+		"1E-0",
+		"1E-1",
+		":",
+	}
+	y := func(kind Token, load []byte, pos uint) {
+		if kind.Is(TokenERR) {
 			t.Errorf("unexpected %q", load)
 		}
 	}
@@ -97,9 +108,23 @@ func TestLexer_Scan_4(t *testing.T) {
 
 // expect errors while tokenizing broken floats
 func TestLexer_Scan_5(t *testing.T) {
-	s := []string{"--", "+1", ".", "-.", "-e", ".e", "-.e", "1e", "-.e0", ".e0", "1E-+0", "1e."}
-	y := func(kind Token, load []byte) {
-		if kind != TokenERR {
+	s := []string{
+		"-",
+		"--",
+		"+1",
+		".",
+		"-0.",
+		"-e",
+		".e",
+		"-.e",
+		"1e",
+		"-.e0",
+		".e0",
+		"1E-+0",
+		"1e.",
+	}
+	y := func(kind Token, load []byte, pos uint) {
+		if !kind.Is(TokenERR) {
 			t.Errorf("unexpected %q %q", kind, load)
 		}
 	}
@@ -118,9 +143,9 @@ func TestLexer_Scan_5(t *testing.T) {
 
 // expect error when byte stream contains illegal values
 func TestLexer_Scan_6(t *testing.T) {
-	s := []byte{0x05, 0x7F}
-	y := func(kind Token, load []byte) {
-		if kind != TokenERR {
+	s := []byte{0x05, 0x7F, 0x80}
+	y := func(kind Token, load []byte, pos uint) {
+		if !kind.Is(TokenERR) {
 			t.Errorf("unexpected %q", load)
 		}
 	}
@@ -131,12 +156,12 @@ func TestLexer_Scan_6(t *testing.T) {
 	}
 }
 
-// expect error when malformed literal found
+// expect error when malformed tokens found
 func TestLexer_Scan_7(t *testing.T) {
 	s := `frue nalse tull`
-	y := func(kind Token, load []byte) {
-		if kind != TokenERR {
-			t.Errorf("unexpected %q %q", kind, load)
+	y := func(kind Token, load []byte, pos uint) {
+		if !kind.Is(TokenERR) {
+			t.Errorf("unexpected %d %q", kind, load)
 		}
 	}
 	for _, v := range strings.Split(s, " ") {
@@ -154,8 +179,8 @@ func TestLexer_Scan_7(t *testing.T) {
 
 // expect error when reader fails with io.ErrUnexpectedEOF
 func TestLexer_Scan_8(t *testing.T) {
-	y := func(kind Token, load []byte) {
-		if kind != TokenERR {
+	y := func(kind Token, load []byte, pos uint) {
+		if !kind.Is(TokenERR) {
 			t.Errorf("unexpected %q", load)
 		}
 	}

@@ -35,9 +35,13 @@ func runLexer(b *testing.B, file string) {
 
 	i := 0
 	lexer := jsonlex.NewLexer(
-		func(kind jsonlex.Token, load []byte) {
-			if kind == jsonlex.TokenEOF {i &= 0}
-			if kind == jsonlex.TokenERR {b.Fatal(kind)}
+		func(kind jsonlex.Token, load []byte, pos uint) {
+			if kind == jsonlex.TokenEOF {
+				i &= 0
+			}
+			if kind == jsonlex.TokenERR {
+				b.Fatal(kind)
+			}
 			i &= 0
 		},
 	)
