@@ -6,7 +6,7 @@
 
 ## jsonlex
 
-Fast JSON lexer (tokenizer) with no memory footprint and no garbage collector pressure (zero-alloc).
+Fast JSON lexer (tokenizer) with no memory footprint and no garbage collector pressure (zero heap allocations).
 
 ### Installation
 ```

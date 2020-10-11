@@ -12,7 +12,7 @@ type (
 	Lexer struct {
 		yield Yield
 		area  []byte
-		buf   []byte
+		buf   [1]byte
 	}
 
 	// Yield is a callback function. It will be invoked
@@ -20,7 +20,7 @@ type (
 	Yield func(token Token, load []byte, pos uint)
 
 	// Token denotes the type of token.
-	Token uint
+	Token uint8
 )
 
 // Kinds of tokens emitted by the lexer.
@@ -69,7 +69,7 @@ func NewLexer(yield Yield) *Lexer {
 	return &Lexer{
 		yield,
 		make([]byte, 0, 1024),
-		[]byte{0},
+		[1]byte{0},
 	}
 }
 
@@ -92,13 +92,12 @@ func (l *Lexer) Scan(r io.Reader) {
 		sign bool // exponent sign
 
 		esc bool  // string escaping mode
-		eot bool  // end of delimited text
 		err error // ordinary error holder
 	)
 
 nextToken:
-	frac, expo, sign = false, false, false
-	eot, esc = false, false
+	esc, frac = false, false
+	expo, sign = false, false
 	load := l.area[:0]
 	t = sniffing
 
@@ -106,7 +105,7 @@ nextByte:
 	if hold {
 		hold = false
 	} else {
-		n, err = r.Read(l.buf)
+		n, err = r.Read(l.buf[:])
 		bpos += uint(n)
 	}
 
@@ -118,7 +117,7 @@ nextByte:
 			goto emitLitToken
 		}
 		if err == io.EOF && len(load) > 0 {
-			goto emitToken
+			goto emitTokenHold
 		}
 		if err == io.EOF {
 			tpos = bpos
@@ -137,7 +136,7 @@ nextByte:
 		if t.Is(TokenLIT) {
 			goto scanLit
 		}
-		goto emitToken
+		goto emitTokenHold
 	}
 
 	if b == 0x20 || b == '\n' || b == '\r' || b == '\t' {
@@ -150,6 +149,9 @@ nextByte:
 	tpos = bpos - 1
 	if s := states[b]; s != 0 {
 		t = s
+		if b == '"' {
+			goto nextByte
+		}
 		goto consume
 	}
 
@@ -163,22 +165,15 @@ emitEofToken:
 	l.yield(TokenEOF, nil, tpos)
 	return
 
-emitStrToken:
-	load = load[1 : len(load)-1]
-	goto emitToken
-
 emitNumToken:
-	if n := len(load); true {
-		if b := load[n-1]; true {
-			if b == '.' || b == '-' || b == 'e' || b == 'E' {
-				goto emitErrToken
-			}
-		}
-		if n >= 3 && string(load[:3]) == "-.e" {
-			goto emitErrToken
-		}
+	if b := load[len(load)-1]; b == '.' || b == '-' ||
+		b == 'e' || b == 'E' {
+		goto emitErrToken
 	}
-	goto emitToken
+	if len(load) >= 3 && string(load[:3]) == "-.e" {
+		goto emitErrToken
+	}
+	goto emitTokenHold
 
 emitLitToken:
 	if s := string(load); true {
@@ -187,23 +182,24 @@ emitLitToken:
 		}
 	}
 
-emitToken:
+emitTokenHold:
 	hold = true
+
+emitToken:
 	l.yield(t, load, tpos)
 	goto nextToken
 
 scanStr:
-	if !eot {
-		if esc {
-			esc = false
-		} else if b == '\\' {
-			esc = true
-		} else if b == '"' {
-			eot = true
-		}
+	if esc {
+		esc = false
 		goto consume
+	} else if b == '\\' {
+		esc = true
 	}
-	goto emitStrToken
+	if !esc && b == '"' {
+		goto emitToken
+	}
+	goto consume
 
 scanNum:
 	if b >= '0' && b <= '9' {
