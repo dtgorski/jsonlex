@@ -11,6 +11,8 @@ type (
 	// Lexer splits JSON byte stream into tokens.
 	Lexer struct {
 		yield Yield
+		area  []byte
+		buf   []byte
 	}
 
 	// Yield is a callback function. It will be invoked
@@ -18,7 +20,7 @@ type (
 	Yield func(token Token, load []byte, pos uint)
 
 	// Token denotes the type of token.
-	Token uint8
+	Token int8
 )
 
 // Kinds of tokens emitted by the lexer.
@@ -64,7 +66,11 @@ func (t Token) Is(token Token) bool {
 //    lexer.Scan(reader)
 //
 func NewLexer(yield Yield) *Lexer {
-	return &Lexer{yield}
+	return &Lexer{
+		yield,
+		make([]byte, 0, 1024),
+		[]byte{0},
+	}
 }
 
 // Scan reads and tokenizes the byte stream.
@@ -74,35 +80,33 @@ func NewLexer(yield Yield) *Lexer {
 // or jsonlex.TokenERR, the Scan() function terminates.
 func (l *Lexer) Scan(r io.Reader) {
 	var (
-		b    byte   // byte under scrutiny
-		n    int    // number of bytes read
-		t    Token  // current token or state
-		load []byte // growing token payload
-		bpos uint   // byte position in stream
-		tpos uint   // token position in stream
-		hold bool   // whether to advance reader
-		frac bool   // number fraction mode
-		expo bool   // number exponent mode
-		sign bool   // exponent sign
+		b byte  // byte under scrutiny
+		n int   // number of bytes read
+		t Token // current token or state
+
+		bpos uint // byte position in stream
+		tpos uint // token position in stream
+		hold bool // whether to advance reader
+		frac bool // number fraction mode
+		expo bool // number exponent mode
+		sign bool // exponent sign
 
 		esc bool  // string escaping mode
 		eot bool  // end of delimited text
 		err error // ordinary error holder
-		buf = []byte{0}
 	)
 
 nextToken:
 	frac, expo, sign = false, false, false
 	eot, esc = false, false
-
-	load = load[:0]
+	load := l.area[:0]
 	t = sniffing
 
 nextByte:
 	if hold {
 		hold = false
 	} else {
-		n, err = r.Read(buf)
+		n, err = r.Read(l.buf)
 		bpos += uint(n)
 	}
 
@@ -123,7 +127,7 @@ nextByte:
 		goto emitErrToken
 	}
 
-	if b = buf[0]; t != sniffing {
+	if b = l.buf[0]; t != sniffing {
 		if t.Is(TokenSTR) {
 			goto scanStr
 		}

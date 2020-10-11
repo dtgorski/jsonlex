@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/dtgorski/jsonlex"
@@ -28,9 +29,12 @@ func Benchmark_dtgorski_jsonlex_2000kB(b *testing.B) {
 }
 
 func runLexer(b *testing.B, file string) {
+	runtime.MemProfileRate = 0
+
 	f, _ := os.Open(file)
 	defer func() { _ = f.Close() }()
 	buf, _ := ioutil.ReadAll(f)
+
 	r := newReader(buf)
 
 	i := 0
@@ -45,6 +49,10 @@ func runLexer(b *testing.B, file string) {
 			i &= 0
 		},
 	)
+
+	b.ResetTimer()
+	runtime.MemProfileRate = 1
+
 	for n := 0; n < b.N; n++ {
 		r.Reset()
 		lexer.Scan(r)

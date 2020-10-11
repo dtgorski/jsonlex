@@ -27,20 +27,21 @@ func Benchmark_encoding_json_2000kB(b *testing.B) {
 	runDecoder(b, "../testdata/2000kB.json")
 }
 
-func runDecoder(t *testing.B, file string) {
+func runDecoder(b *testing.B, file string) {
 	f, _ := os.Open(file)
 	defer func() { _ = f.Close() }()
-	b, _ := ioutil.ReadAll(f)
+	buf, _ := ioutil.ReadAll(f)
 
-	for n := 0; n < t.N; n++ {
-		d := json.NewDecoder(bytes.NewReader(b))
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		d := json.NewDecoder(bytes.NewReader(buf))
 		for {
 			_, err := d.Token()
 			if err == io.EOF {
 				break
 			}
 			if err != nil {
-				t.Error(err)
+				b.Error(err)
 			}
 		}
 	}

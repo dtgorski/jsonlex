@@ -16,15 +16,17 @@ test: clean             # Runs integrity test with -race
 bench: clean            # Executes artificial benchmarks
 	CGO_ENABLED=0 go test -benchmem -bench=. ./bench
 
-prof: clean             # Executes artificial benchmarks w/ profile info
-	CGO_ENABLED=0 go test -benchmem -cpuprofile=cpu.prof -memprofile=mem.prof -bench=jsonlex.*2000kB ./bench
+prof-cpu: clean         # Creates CPU profiler output
+	CGO_ENABLED=0 go test -cpuprofile=cpu.prof -bench=jsonlex.*2000kB ./bench
 	@echo "\nCPU --------------------------------------"
 	@go tool pprof -top cpu.prof | head -20 | sed "s/^/    /"
+	@go tool pprof -weblist=. ./bench.test cpu.prof &
+
+prof-mem: clean        # Creates memory profiler output
+	CGO_ENABLED=0 go test -benchmem -memprofilerate=0 -memprofile=mem.prof -bench=jsonlex.*2000kB ./bench
 	@echo "\nMEM --------------------------------------"
 	@go tool pprof -top mem.prof | head -20 | sed "s/^/    /"
-	@echo "\nMORE -------------------------------------"
-	@echo "$$ go tool pprof cpu.prof" | sed "s/^/    /"
-	@echo "$$ go tool pprof mem.prof" | sed "s/^/    /"
+	@go tool pprof -weblist=. ./bench.test mem.prof &
 
 sniff:                  # Checks format and runs linter (void on success)
 	@gofmt -d .

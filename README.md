@@ -6,7 +6,7 @@
 
 ## jsonlex
 
-Fast JSON lexer (tokenizer) with low memory footprint and low garbage collector pressure.
+Fast JSON lexer (tokenizer) with no memory footprint and no garbage collector pressure (zero-alloc).
 
 ### Installation
 ```
@@ -63,23 +63,23 @@ The comparison candidate is Go's [encoding/json.Decoder.Token()](https://golang.
 
 | |2kB|20kB|200kb|2000kB
 | --- | --- | --- | --- | ---
-|```encoding/json```|```10946 doc/s```|```1179 doc/s```|```128 doc/s```|```14 doc/s```
-|```dtgorski/jsonlex```|**```57790 doc/s```**|**```5874 doc/s```**|**```602 doc/s```**|**```62 doc/s```**
+|```encoding/json```|```10987 doc/s```|```1184 doc/s```|```128 doc/s```|```13 doc/s```
+|```dtgorski/jsonlex```|**```59346 doc/s```**|**```6021 doc/s```**|**```615 doc/s```**|**```68 doc/s```**
 
 ```
 goos: linux
 goarch: amd64
 pkg: github.com/dtgorski/jsonlex/bench
 
-Benchmark_encoding_json_2kB-8        10946     109034 ns/op      36528 B/op      1963 allocs/op
-Benchmark_encoding_json_20kB-8        1179    1016282 ns/op     318487 B/op     18231 allocs/op
-Benchmark_encoding_json_200kB-8        128    9403946 ns/op    2882058 B/op    164401 allocs/op
-Benchmark_encoding_json_2000kB-8        14   79604995 ns/op   23655504 B/op   1319127 allocs/op
+Benchmark_encoding_json_2kB-8        10987     109031 ns/op      36528 B/op      1963 allocs/op
+Benchmark_encoding_json_20kB-8        1184    1025208 ns/op     318434 B/op     18231 allocs/op
+Benchmark_encoding_json_200kB-8        128    9484296 ns/op    2877981 B/op    164401 allocs/op
+Benchmark_encoding_json_2000kB-8        13   78722997 ns/op   23356024 B/op   1319126 allocs/op
 
-Benchmark_dtgorski_jsonlex_2kB-8     57790      20546 ns/op        256 B/op        11 allocs/op
-Benchmark_dtgorski_jsonlex_20kB-8     5874     204287 ns/op       2370 B/op        86 allocs/op
-Benchmark_dtgorski_jsonlex_200kB-8     602    1989911 ns/op      23803 B/op       630 allocs/op
-Benchmark_dtgorski_jsonlex_2000kB-8     62   17726113 ns/op     267372 B/op      3977 allocs/op
+Benchmark_dtgorski_jsonlex_2kB-8     59346      20237 ns/op          0 B/op         0 allocs/op
+Benchmark_dtgorski_jsonlex_20kB-8     6021     199091 ns/op          0 B/op         0 allocs/op
+Benchmark_dtgorski_jsonlex_200kB-8     615    1944173 ns/op          0 B/op         0 allocs/op
+Benchmark_dtgorski_jsonlex_2000kB-8     68   17415371 ns/op          0 B/op         0 allocs/op
 ```
 
 ### Disclaimer
@@ -95,7 +95,8 @@ $ make
  make clean      Removes build/test artifacts
  make test       Runs integrity test with -race
  make bench      Executes artificial benchmarks
- make prof       Executes artificial benchmarks w/ profile info
+ make prof-cpu   Creates CPU profiler output
+ make prof-mem   Creates memory profiler output
  make sniff      Checks format and runs linter (void on success)
  make tidy       Formats source files, cleans go.mod
 ```
