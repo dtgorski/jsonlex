@@ -20,7 +20,7 @@ type (
 	Yield func(token Token, load []byte, pos uint)
 
 	// Token denotes the type of token.
-	Token int8
+	Token uint
 )
 
 // Kinds of tokens emitted by the lexer.
