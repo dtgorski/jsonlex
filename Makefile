@@ -14,23 +14,23 @@ test: clean             # Runs integrity test with -race
 	@go tool cover -html=./coverage.out -o ./coverage.html && echo "coverage: <file://$(PWD)/coverage.html>"
 
 bench: clean            # Executes artificial benchmarks
-	CGO_ENABLED=0 go test -benchmem -bench=. ./bench
+	CGO_ENABLED=0 GOMAXPROCS=1 go test -benchmem -bench=. ./bench
 
 prof-cpu: clean         # Creates CPU profiler output
-	CGO_ENABLED=0 go test -cpuprofile=cpu.prof -bench=jsonlex.*2000kB ./bench
+	CGO_ENABLED=0 GOMAXPROCS=1 go test -cpuprofile=cpu.prof -bench=jsonlex.*2000kB ./bench
 	@echo "\nCPU --------------------------------------"
 	@go tool pprof -top cpu.prof | head -20
 	@echo "\nTRY: go tool pprof -weblist=. ./bench.test cpu.prof"
 
 prof-mem: clean        # Creates memory profiler output
-	CGO_ENABLED=0 go test -benchmem -memprofilerate=0 -memprofile=mem.prof -bench=jsonlex.*2000kB ./bench
+	CGO_ENABLED=0 GOMAXPROCS=1 go test -benchmem -memprofilerate=0 -memprofile=mem.prof -bench=jsonlex.*2000kB ./bench
 	@echo "\nMEM --------------------------------------"
 	@go tool pprof -top mem.prof | head -20 | sed "s/^/    /"
 	@echo "\nTRY: go tool pprof -weblist=. ./bench.test mem.prof"
 
 sniff:                  # Checks format and runs linter (void on success)
 	@gofmt -d .
-	@2>/dev/null revive -config revive.toml ./... || echo "get a linter first:  go install github.com/mgechev/revive"
+	@2>/dev/null revive -config .revive.toml ./... || echo "get a linter first:  go install github.com/mgechev/revive"
 
 tidy:                   # Formats source files, cleans go.mod
 	@gofmt -w .

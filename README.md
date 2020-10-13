@@ -58,28 +58,29 @@ func main() {
 
 ### Artificial benchmarks
 
-Each benchmark consists of complete tokenization of a JSON document of a given size (2kB, 20kB, 200kB and 2000kB). The unit ```doc/s``` means _tokenized documents per second_, so more is better. 
+Each benchmark consists of complete tokenization of a JSON document of a given size (2kB, 20kB, 200kB and 2000kB) using one CPU core. The unit ```doc/s``` means _tokenized documents per second_, so more is better. 
 The comparison candidate is Go's [encoding/json.Decoder.Token()](https://golang.org/pkg/encoding/json/#Decoder.Token) implementation.
 
 | |2kB|20kB|200kb|2000kB
 | --- | --- | --- | --- | ---
-|```encoding/json```|```10987 doc/s```|```1184 doc/s```|```128 doc/s```|```13 doc/s```
-|```dtgorski/jsonlex```|**```59346 doc/s```**|**```6021 doc/s```**|**```615 doc/s```**|**```68 doc/s```**
+|```encoding/json```|```10893 doc/s```|```1171 doc/s```|```128 doc/s```|```14 doc/s```
+|```dtgorski/jsonlex```|**```64950 doc/s```**|**```6516 doc/s```**|**```672 doc/s```**|**```73 doc/s```**
 
 ```
+cpus: 1 core (~8000 BogoMIPS)
 goos: linux
 goarch: amd64
 pkg: github.com/dtgorski/jsonlex/bench
 
-Benchmark_encoding_json_2kB-8        10987     109031 ns/op      36528 B/op      1963 allocs/op
-Benchmark_encoding_json_20kB-8        1184    1025208 ns/op     318434 B/op     18231 allocs/op
-Benchmark_encoding_json_200kB-8        128    9484296 ns/op    2877981 B/op    164401 allocs/op
-Benchmark_encoding_json_2000kB-8        13   78722997 ns/op   23356024 B/op   1319126 allocs/op
+Benchmark_encoding_json_2kB          10893     108697 ns/op      36528 B/op      1963 allocs/op
+Benchmark_encoding_json_20kB          1171    1016445 ns/op     318432 B/op     18231 allocs/op
+Benchmark_encoding_json_200kB          128    9288534 ns/op    2877972 B/op    164401 allocs/op
+Benchmark_encoding_json_2000kB          14   76166188 ns/op   23355917 B/op   1319126 allocs/op
 
-Benchmark_dtgorski_jsonlex_2kB-8     59346      20237 ns/op          0 B/op         0 allocs/op
-Benchmark_dtgorski_jsonlex_20kB-8     6021     199091 ns/op          0 B/op         0 allocs/op
-Benchmark_dtgorski_jsonlex_200kB-8     615    1944173 ns/op          0 B/op         0 allocs/op
-Benchmark_dtgorski_jsonlex_2000kB-8     68   17415371 ns/op          0 B/op         0 allocs/op
+Benchmark_dtgorski_jsonlex_2kB       64950      18420 ns/op          0 B/op         0 allocs/op
+Benchmark_dtgorski_jsonlex_20kB       6516     181015 ns/op          0 B/op         0 allocs/op
+Benchmark_dtgorski_jsonlex_200kB       672    1778477 ns/op          0 B/op         0 allocs/op
+Benchmark_dtgorski_jsonlex_2000kB       73   15851046 ns/op          0 B/op         0 allocs/op
 ```
 
 ### Disclaimer

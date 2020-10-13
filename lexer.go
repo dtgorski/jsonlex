@@ -37,7 +37,7 @@ const (
 	TokenLCB              // { left curly brace
 	TokenRCB              // } right curly brace
 
-	sniffing
+	scanning
 )
 
 // Is is a convenience function.
@@ -99,7 +99,7 @@ nextToken:
 	esc, frac = false, false
 	expo, sign = false, false
 	load := l.area[:0]
-	t = sniffing
+	t = scanning
 
 nextByte:
 	if hold {
@@ -126,7 +126,7 @@ nextByte:
 		goto emitErrToken
 	}
 
-	if b = l.buf[0]; t != sniffing {
+	if b = l.buf[0]; t != scanning {
 		if t.Is(TokenSTR) {
 			goto scanStr
 		}
