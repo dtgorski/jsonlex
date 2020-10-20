@@ -13,7 +13,32 @@ Fast JSON lexer (tokenizer) with no memory footprint and no garbage collector pr
 go get -u github.com/dtgorski/jsonlex
 ```
 
-### Usage
+### Usage A - iterating behaviour (Cursor)
+```
+package main
+
+import (
+    "bytes"
+    "github.com/dtgorski/jsonlex"
+)
+
+func main() {
+    reader := bytes.NewReader(
+        []byte(`{ "foo": "bar", "baz": 42 }`),
+    )
+
+    cursor := jsonlex.NewCursor(reader, nil)
+
+    println(cursor.Curr().String())
+    println(cursor.Next().String())
+
+    if !cursor.Next().Is(jsonlex.TokenEOF) {
+        println("there is more ...")
+    }
+}
+```
+
+### Usage B - emitting behaviour (Yield)
 ```
 package main
 
@@ -28,12 +53,13 @@ func main() {
     )
 
     lexer := jsonlex.NewLexer(
-        func(token jsonlex.Token, load []byte, pos uint) {
+        func(kind jsonlex.TokenKind, load []byte, pos uint) bool {
 
             save := make([]byte, len(load))
             copy(save, load)
 
-            println(pos, token, string(save))
+            println(pos, kind, string(save))
+            return true
         },
     )
 
@@ -63,8 +89,8 @@ The comparison candidate is Go's [encoding/json.Decoder.Token()](https://golang.
 
 | |2kB|20kB|200kb|2000kB
 | --- | --- | --- | --- | ---
-|```encoding/json```|```10893 doc/s```|```1171 doc/s```|```128 doc/s```|```14 doc/s```
-|```dtgorski/jsonlex```|**```64950 doc/s```**|**```6516 doc/s```**|**```672 doc/s```**|**```73 doc/s```**
+|```encoding/json```|```9910 doc/s```|```1152 doc/s```|```126 doc/s```|```14 doc/s```
+|```dtgorski/jsonlex```|**```71880 doc/s```**|**```7341 doc/s```**|**```753 doc/s```**|**```85 doc/s```**
 
 ```
 cpus: 1 core (~8000 BogoMIPS)
@@ -72,15 +98,20 @@ goos: linux
 goarch: amd64
 pkg: github.com/dtgorski/jsonlex/bench
 
-Benchmark_encoding_json_2kB          10893     108697 ns/op      36528 B/op      1963 allocs/op
-Benchmark_encoding_json_20kB          1171    1016445 ns/op     318432 B/op     18231 allocs/op
-Benchmark_encoding_json_200kB          128    9288534 ns/op    2877972 B/op    164401 allocs/op
-Benchmark_encoding_json_2000kB          14   76166188 ns/op   23355917 B/op   1319126 allocs/op
+Benchmark_encjson_2kB              9910     120475 ns/op      36528 B/op      1963 allocs/op
+Benchmark_encjson_20kB             1152    1040771 ns/op     318432 B/op     18231 allocs/op
+Benchmark_encjson_200kB             126    9494534 ns/op    2877968 B/op    164401 allocs/op
+Benchmark_encjson_2000kB             14   77593586 ns/op   23355856 B/op   1319126 allocs/op
 
-Benchmark_dtgorski_jsonlex_2kB       64950      18420 ns/op          0 B/op         0 allocs/op
-Benchmark_dtgorski_jsonlex_20kB       6516     181015 ns/op          0 B/op         0 allocs/op
-Benchmark_dtgorski_jsonlex_200kB       672    1778477 ns/op          0 B/op         0 allocs/op
-Benchmark_dtgorski_jsonlex_2000kB       73   15851046 ns/op          0 B/op         0 allocs/op
+Benchmark_jsonlex_lexer_2kB       71880      16691 ns/op          0 B/op         0 allocs/op
+Benchmark_jsonlex_lexer_20kB       7341     163210 ns/op          0 B/op         0 allocs/op
+Benchmark_jsonlex_lexer_200kB       753    1594025 ns/op          0 B/op         0 allocs/op
+Benchmark_jsonlex_lexer_2000kB       85   14107866 ns/op          0 B/op         0 allocs/op
+
+Benchmark_jsonlex_cursor_2kB      38002      31776 ns/op       3680 B/op       592 allocs/op
+Benchmark_jsonlex_cursor_20kB      4058     300490 ns/op      25168 B/op      5446 allocs/op
+Benchmark_jsonlex_cursor_200kB      422    2777058 ns/op     248816 B/op     49141 allocs/op
+Benchmark_jsonlex_cursor_2000kB      50   23559879 ns/op    2254896 B/op    396298 allocs/op
 ```
 
 ### Disclaimer

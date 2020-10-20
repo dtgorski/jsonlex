@@ -11,19 +11,19 @@ import (
 	"testing"
 )
 
-func Benchmark_encoding_json_2kB(b *testing.B) {
+func Benchmark_encjson_2kB(b *testing.B) {
 	runDecoder(b, "../testdata/2kB.json")
 }
 
-func Benchmark_encoding_json_20kB(b *testing.B) {
+func Benchmark_encjson_20kB(b *testing.B) {
 	runDecoder(b, "../testdata/20kB.json")
 }
 
-func Benchmark_encoding_json_200kB(b *testing.B) {
+func Benchmark_encjson_200kB(b *testing.B) {
 	runDecoder(b, "../testdata/200kB.json")
 }
 
-func Benchmark_encoding_json_2000kB(b *testing.B) {
+func Benchmark_encjson_2000kB(b *testing.B) {
 	runDecoder(b, "../testdata/2000kB.json")
 }
 

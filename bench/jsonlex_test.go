@@ -6,51 +6,85 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"runtime"
 	"testing"
 
-	"github.com/dtgorski/jsonlex"
+	. "github.com/dtgorski/jsonlex"
 )
 
-func Benchmark_dtgorski_jsonlex_2kB(b *testing.B) {
+func Benchmark_jsonlex_lexer_2kB(b *testing.B) {
 	runLexer(b, "../testdata/2kB.json")
 }
 
-func Benchmark_dtgorski_jsonlex_20kB(b *testing.B) {
+func Benchmark_jsonlex_lexer_20kB(b *testing.B) {
 	runLexer(b, "../testdata/20kB.json")
 }
 
-func Benchmark_dtgorski_jsonlex_200kB(b *testing.B) {
+func Benchmark_jsonlex_lexer_200kB(b *testing.B) {
 	runLexer(b, "../testdata/200kB.json")
 }
 
-func Benchmark_dtgorski_jsonlex_2000kB(b *testing.B) {
+func Benchmark_jsonlex_lexer_2000kB(b *testing.B) {
 	runLexer(b, "../testdata/2000kB.json")
 }
 
-func runLexer(b *testing.B, file string) {
-	runtime.MemProfileRate = 0
+func Benchmark_jsonlex_cursor_2kB(b *testing.B) {
+	runCursor(b, "../testdata/2kB.json")
+}
 
+func Benchmark_jsonlex_cursor_20kB(b *testing.B) {
+	runCursor(b, "../testdata/20kB.json")
+}
+
+func Benchmark_jsonlex_cursor_200kB(b *testing.B) {
+	runCursor(b, "../testdata/200kB.json")
+}
+
+func Benchmark_jsonlex_cursor_2000kB(b *testing.B) {
+	runCursor(b, "../testdata/2000kB.json")
+}
+
+func runLexer(b *testing.B, file string) {
 	f, _ := os.Open(file)
 	defer func() { _ = f.Close() }()
 	buf, _ := ioutil.ReadAll(f)
 
 	r := newReader(buf)
 
-	lexer := jsonlex.NewLexer(
-		func(kind jsonlex.Token, load []byte, pos uint) {
-			if kind == jsonlex.TokenERR {
+	lexer := NewLexer(
+		func(kind TokenKind, load []byte, pos uint) bool {
+			if kind == TokenERR {
 				b.Fatal(kind)
 			}
+			return true
 		},
 	)
 
 	b.ResetTimer()
-	runtime.MemProfileRate = 1
-
 	for n := 0; n < b.N; n++ {
 		r.Reset()
 		lexer.Scan(r)
+	}
+}
+
+func runCursor(b *testing.B, file string) {
+	f, _ := os.Open(file)
+	defer func() { _ = f.Close() }()
+	buf, _ := ioutil.ReadAll(f)
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		r := newReader(buf)
+		cursor := NewCursor(r, nil)
+
+		for ; ; cursor.Next() {
+			if cursor.Curr().Is(TokenERR) {
+				b.Errorf("%s", cursor.Curr().Load)
+				break
+			}
+			if cursor.Curr().Is(TokenEOF) {
+				break
+			}
+		}
 	}
 }
 
