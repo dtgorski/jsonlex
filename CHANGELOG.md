@@ -1,3 +1,6 @@
+#### v0.3.1
+* Test and documentation improvements 
+
 #### v0.3.0
 * Lexer.Scan() is now reentrant. Depending on the outcome of the Yield callback, the Scan() function will terminate and can be invoked again. 
 * Added a Cursor which provides iteration over tokens using Curr(), Peek(), Next() and Last() methods

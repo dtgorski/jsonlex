@@ -13,6 +13,9 @@ Fast JSON lexer (tokenizer) with no memory footprint and no garbage collector pr
 go get -u github.com/dtgorski/jsonlex
 ```
 
+### Important
+Using an ```io.Reader``` that directly uses system calls (e.g. ```os.File```) will result in poor performance. Wrap your input reader with ```bufio.Reader``` or better ```bytes.Reader``` to achieve best results.
+
 ### Usage A - iterating behaviour (Cursor)
 ```
 package main

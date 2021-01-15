@@ -44,6 +44,8 @@ func Benchmark_jsonlex_cursor_2000kB(b *testing.B) {
 }
 
 func runLexer(b *testing.B, file string) {
+	b.ReportAllocs()
+
 	f, _ := os.Open(file)
 	defer func() { _ = f.Close() }()
 	buf, _ := ioutil.ReadAll(f)
@@ -67,6 +69,8 @@ func runLexer(b *testing.B, file string) {
 }
 
 func runCursor(b *testing.B, file string) {
+	b.ReportAllocs()
+
 	f, _ := os.Open(file)
 	defer func() { _ = f.Close() }()
 	buf, _ := ioutil.ReadAll(f)

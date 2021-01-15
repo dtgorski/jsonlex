@@ -12,7 +12,9 @@ import (
 // expect EOF
 func TestLexer_Scan_1(t *testing.T) {
 	s := ``
+	i := 0
 	y := func(kind TokenKind, load []byte, pos uint) bool {
+		i++
 		if !kind.Is(TokenEOF) {
 			t.Errorf("unexpected %q", load)
 		}
@@ -21,12 +23,18 @@ func TestLexer_Scan_1(t *testing.T) {
 	l := NewLexer(y)
 	r := bytes.NewReader([]byte(s))
 	l.Scan(r)
+
+	if i != 1 {
+		t.Error("unexpected")
+	}
 }
 
 // expect error, unexpected input
 func TestLexer_Scan_2(t *testing.T) {
 	s := ` * `
+	i := 0
 	y := func(kind TokenKind, load []byte, pos uint) bool {
+		i++
 		if !kind.Is(TokenERR) {
 			t.Errorf("unexpected %q", load)
 		}
@@ -35,6 +43,10 @@ func TestLexer_Scan_2(t *testing.T) {
 	l := NewLexer(y)
 	r := bytes.NewReader([]byte(s))
 	l.Scan(r)
+
+	if i != 1 {
+		t.Error("unexpected")
+	}
 }
 
 // expect standard functionality

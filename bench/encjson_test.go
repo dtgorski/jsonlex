@@ -28,6 +28,8 @@ func Benchmark_encjson_2000kB(b *testing.B) {
 }
 
 func runDecoder(b *testing.B, file string) {
+	b.ReportAllocs()
+
 	f, _ := os.Open(file)
 	defer func() { _ = f.Close() }()
 	buf, _ := ioutil.ReadAll(f)
