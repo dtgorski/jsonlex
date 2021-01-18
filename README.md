@@ -3,6 +3,7 @@
 [![Open Issues](https://img.shields.io/github/issues/dtgorski/jsonlex.svg)](https://github.com/dtgorski/jsonlex/issues)
 [![Report Card](https://goreportcard.com/badge/github.com/dtgorski/jsonlex)](https://goreportcard.com/report/github.com/dtgorski/jsonlex)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/dtgorski/jsonlex)](https://pkg.go.dev/github.com/dtgorski/jsonlex)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdtgorski%2Fjsonlex.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdtgorski%2Fjsonlex?ref=badge_shield)
 
 ## jsonlex
 
@@ -138,3 +139,6 @@ $ make
 
 ### License
 [MIT](https://opensource.org/licenses/MIT) - © dtg [at] lengo [dot] org
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdtgorski%2Fjsonlex.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdtgorski%2Fjsonlex?ref=badge_large)
