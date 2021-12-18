@@ -3,6 +3,7 @@
 package jsonlex
 
 import (
+	"errors"
 	"fmt"
 	"io"
 )
@@ -20,6 +21,8 @@ type (
 		expo  bool    // number exponent mode
 		sign  bool    // exponent sign
 		esc   bool    // string escaping mode
+		burd  bool    // is true if buffer was unread
+		burde bool    // unread feature (if supported) enabled
 
 	}
 
@@ -33,13 +36,30 @@ type (
 // NewLexer takes a callback (yield) function as parameter.
 // This yield function will be invoked for each token
 // consumed from the byte stream by Scan().
-func NewLexer(yield Yield) *Lexer {
-	return &Lexer{
+func NewLexer(yield Yield, opts ...lexerOpt) *Lexer {
+	l := &Lexer{
 		yield: yield,
 		area:  make([]byte, 0, 1024),
 		buff:  [1]byte{0},
 	}
+	for _, opt := range opts {
+		opt(l)
+	}
+	return l
 }
+
+type lexerOpt func(*Lexer)
+
+var (
+	// LexerOptEnableUnreadBuffer enables if the given io.Reader
+	// does implement UnreadableReader; it's UnreadableReader.UnreadByte
+	// will be called if the Lexer reads one byte more to ensure that
+	// a literal or number was ended. This ensures this Lexer never reads
+	// more bytes than it is currently processing.
+	LexerOptEnableUnreadBuffer lexerOpt = func(l *Lexer) {
+		l.burde = true
+	}
+)
 
 // Scan reads and tokenizes the byte stream.
 // The yield function is invoked for each token found.
@@ -64,11 +84,30 @@ nextToken:
 	load := l.area[:0]
 	t = scanning
 
+	if l.burd {
+		if _, ok := r.(UnreadableReader); ok {
+			expb := l.buff[0]
+			n, err = r.Read(l.buff[:])
+			if n == 0 || err == io.EOF {
+				err = io.ErrUnexpectedEOF
+				goto emitErrToken
+			}
+			if err != nil {
+				goto emitErrToken
+			}
+			if expb != l.buff[0] {
+				err = errUnexpectedByte
+			}
+			l.burd = false
+		}
+	}
+
 nextByte:
 	if l.hold {
 		l.hold = false
 	} else {
 		n, err = r.Read(l.buff[:])
+		l.burd = false
 		l.bpos += uint(n)
 	}
 
@@ -191,16 +230,42 @@ scanNum:
 		l.sign = false
 		goto consume
 	}
+
+	if l.burde {
+		if ur, ok := r.(UnreadableReader); ok {
+			if err = ur.UnreadByte(); err != nil {
+				goto emitErrToken
+			}
+			l.burd = true
+		}
+	}
+
 	goto emitNumToken
 
 scanLit:
 	if b >= 'a' && b <= 'z' {
 		goto consume
 	}
+
+	if l.burde {
+		if ur, ok := r.(UnreadableReader); ok {
+			if err = ur.UnreadByte(); err != nil {
+				goto emitErrToken
+			}
+			l.burd = true
+		}
+	}
+
 	goto emitLitToken
 
 consume:
 	load = append(load, b)
+	switch t {
+	case TokenLSB, TokenRSB,
+		TokenLCB, TokenRCB,
+		TokenCOL, TokenCOM:
+		goto emitToken
+	}
 	goto nextByte
 }
 
@@ -302,3 +367,13 @@ var states = [0x80]TokenKind{
 	'~':  0,        // 0x7E tilde
 	0x7F: 0,        // 0x7F unexpected character
 }
+
+// UnreadableReader provides the UnreadByte
+type UnreadableReader interface {
+	io.Reader
+
+	// UnreadByte unreads the last read byte by this reader.
+	UnreadByte() error
+}
+
+var errUnexpectedByte = errors.New("unexpected byte")
