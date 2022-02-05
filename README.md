@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/dtgorski/jsonlex.svg?branch=master)](https://travis-ci.org/dtgorski/jsonlex)
+[![Build Status](https://app.travis-ci.com/dtgorski/jsonlex.svg?branch=master)](https://app.travis-ci.com/dtgorski/jsonlex)
 [![Coverage Status](https://coveralls.io/repos/github/dtgorski/jsonlex/badge.svg?branch=master)](https://coveralls.io/github/dtgorski/jsonlex?branch=master)
 [![Open Issues](https://img.shields.io/github/issues/dtgorski/jsonlex.svg)](https://github.com/dtgorski/jsonlex/issues)
 [![Report Card](https://goreportcard.com/badge/github.com/dtgorski/jsonlex)](https://goreportcard.com/report/github.com/dtgorski/jsonlex)
