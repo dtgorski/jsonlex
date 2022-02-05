@@ -11,7 +11,7 @@ env:
 - GO111MODULE=auto
 
 before_install:
-- go install github.com/mattn/goveralls
+- go get github.com/mattn/goveralls
 
 script:
 - make .travis
