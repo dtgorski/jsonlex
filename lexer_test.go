@@ -1,4 +1,5 @@
 // MIT license · Daniel T. Gorski · dtg [at] lengo [dot] org · 10/2020
+//               Gregor Noczinski · gregor [at] noczinski [dot] eu · 12/2021
 
 package jsonlex
 
@@ -285,4 +286,156 @@ type FaultyReader struct{}
 
 func (*FaultyReader) Read([]byte) (int, error) {
 	return 0, io.ErrUnexpectedEOF
+}
+
+// ensure LexerOptEnableUnreadBuffer is working with objects
+func TestLexer_Scan_10(t *testing.T) {
+	s := []byte(`{"hello":   "world", "a": 1, "b": false}`)
+	r := bytes.NewBuffer(s)
+
+	steps := []struct {
+		kind TokenKind
+		load string
+		left string
+	}{{
+		kind: TokenLCB, //0
+		load: `{`,
+		left: `"hello":   "world", "a": 1, "b": false}`,
+	}, {
+		kind: TokenSTR, //1
+		load: `hello`,
+		left: `:   "world", "a": 1, "b": false}`,
+	}, {
+		kind: TokenCOL, //2
+		load: `:`,
+		left: `   "world", "a": 1, "b": false}`,
+	}, {
+		kind: TokenSTR, //3
+		load: `world`,
+		left: `, "a": 1, "b": false}`,
+	}, {
+		kind: TokenCOM, //4
+		load: `,`,
+		left: ` "a": 1, "b": false}`,
+	}, {
+		kind: TokenSTR, //5
+		load: `a`,
+		left: `: 1, "b": false}`,
+	}, {
+		kind: TokenCOL, //6
+		load: `:`,
+		left: ` 1, "b": false}`,
+	}, {
+		kind: TokenNUM, //7
+		load: `1`,
+		left: `, "b": false}`,
+	}, {
+		kind: TokenCOM, //8
+		load: `,`,
+		left: ` "b": false}`,
+	}, {
+		kind: TokenSTR, //9
+		load: `b`,
+		left: `: false}`,
+	}, {
+		kind: TokenCOL, //10
+		load: `:`,
+		left: ` false}`,
+	}, {
+		kind: TokenLIT, //11
+		load: `false`,
+		left: `}`,
+	}, {
+		kind: TokenRCB, //12
+		load: `}`,
+		left: ``,
+	}}
+
+	var i int
+	y := func(kind TokenKind, load []byte, pos uint) bool {
+		if i >= len(steps) {
+			panic("once too often called")
+		}
+
+		step := steps[i]
+		if !kind.Is(step.kind) {
+			t.Errorf("%d: unexpected token %q", i, load)
+		} else if string(load) != step.load {
+			t.Errorf("%d: uexpected load %q", i, load)
+		} else if r.String() != step.left {
+			t.Errorf("%d: uexpected left content to parse (%d != %d) %q", i, r.Len(), len(step.left), r.String())
+		}
+		i++
+		return false
+	}
+
+	l := NewLexer(y, LexerOptEnableUnreadBuffer)
+
+	for range steps {
+		l.Scan(r)
+	}
+}
+
+// ensure LexerOptEnableUnreadBuffer is working with arrays
+func TestLexer_Scan_11(t *testing.T) {
+	s := []byte(`["hello", 1, false]`)
+	r := bytes.NewBuffer(s)
+
+	steps := []struct {
+		kind TokenKind
+		load string
+		left string
+	}{{
+		kind: TokenLSB, //0
+		load: `[`,
+		left: `"hello", 1, false]`,
+	}, {
+		kind: TokenSTR, //1
+		load: `hello`,
+		left: `, 1, false]`,
+	}, {
+		kind: TokenCOM, //2
+		load: `,`,
+		left: ` 1, false]`,
+	}, {
+		kind: TokenNUM, //3
+		load: `1`,
+		left: `, false]`,
+	}, {
+		kind: TokenCOM, //4
+		load: `,`,
+		left: ` false]`,
+	}, {
+		kind: TokenLIT, //5
+		load: `false`,
+		left: `]`,
+	}, {
+		kind: TokenRSB, //6
+		load: `]`,
+		left: ``,
+	}}
+
+	var i int
+	y := func(kind TokenKind, load []byte, pos uint) bool {
+		if i >= len(steps) {
+			panic("once too often called")
+		}
+
+		step := steps[i]
+		if !kind.Is(step.kind) {
+			t.Errorf("%d: unexpected token %q", i, load)
+		} else if string(load) != step.load {
+			t.Errorf("%d: uexpected load %q", i, load)
+		} else if r.String() != step.left {
+			t.Errorf("%d: uexpected left content to parse (%d != %d) %q", i, r.Len(), len(step.left), r.String())
+		}
+		i++
+		return false
+	}
+
+	l := NewLexer(y, LexerOptEnableUnreadBuffer)
+
+	for range steps {
+		l.Scan(r)
+	}
 }

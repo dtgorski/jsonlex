@@ -5,7 +5,7 @@ errorCode = 0
 warningCode = 0
 
 [rule.file-header]
-    arguments = ["MIT license · Daniel T. Gorski · dtg \\[at\\] lengo \\[dot\\] org"]
+    arguments = ["MIT license.*"]
 [rule.blank-imports]
 [rule.context-as-argument]
 [rule.context-keys-type]
@@ -41,7 +41,7 @@ warningCode = 0
 [rule.confusing-results]
 [rule.constant-logical-expr]
 [rule.cyclomatic]
-    arguments = [55]
+    arguments = [67] # this is sick :)
 [rule.deep-exit]
 [rule.duplicated-imports]
 [rule.flag-parameter]
