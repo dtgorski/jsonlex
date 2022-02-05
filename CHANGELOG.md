@@ -1,3 +1,8 @@
+#### v0.4.0
+* Added UnreadableReader interface which allows the Lexer to unread bytes if necessary.
+  Along comes a new option LexerOptEnableUnreadBuffer for the NewLexer() function, which enables
+  the UnreadableReader. Kudos: Gregor Noczinski <gregor [at] noczinski [dot] eu>
+
 #### v0.3.1
 * Test and documentation improvements 
 

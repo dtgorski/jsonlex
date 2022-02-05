@@ -27,8 +27,10 @@ prof-mem: clean        # Creates memory profiler output
 	go tool pprof -top mem.prof | sed "s/^/    /"
 
 sniff:                  # Checks format and runs linter (void on success)
-	@gofmt -d .
-	@2>/dev/null revive -config .revive.toml ./... || echo "get a linter first:  go install github.com/mgechev/revive"
+	@find . -type f -not -path "*/\.*" -name "*.go" | xargs -I{} gofmt -d {}
+	@go vet ./... || true
+	@>/dev/null which revive || (echo "Missing a linter, install with:  go install github.com/mgechev/revive" && false)
+	@revive -config .revive.toml ./...
 
 tidy:                   # Formats source files, cleans go.mod
 	@gofmt -w .

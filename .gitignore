@@ -6,3 +6,4 @@ _*
 *.prof
 cmd/
 bin/
+makefile

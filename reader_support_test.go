@@ -1,3 +1,5 @@
+// MIT license · Gregor Noczinski · gregor [at] noczinski [dot] eu · 12/2021
+
 package jsonlex
 
 import (
@@ -25,7 +27,10 @@ func TestEnsureAtLeastSingleByteUnreadableReader_2(t *testing.T) {
 	actual := EnsureAtLeastSingleByteUnreadableReader(given)
 
 	if sbur, ok := actual.(*singleByteUnreadableReader); !ok {
-		t.Errorf("EnsureAtLeastSingleByteUnreadableReader() = %v, should be of: %v", actual, reflect.TypeOf(&singleByteUnreadableReader{}))
+		t.Errorf(
+			"EnsureAtLeastSingleByteUnreadableReader() = %v, should be of: %v",
+			actual, reflect.TypeOf(&singleByteUnreadableReader{}),
+		)
 	} else if sbur.delegate != given {
 		t.Errorf("EnsureAtLeastSingleByteUnreadableReader().delegate = %v, want: %v", sbur.delegate, given)
 	}
@@ -104,6 +109,6 @@ func TestSingleByteUnreadableReader_Read(t *testing.T) {
 
 type uselessTestReader struct{}
 
-func (r *uselessTestReader) Read([]byte) (int, error) {
+func (*uselessTestReader) Read([]byte) (int, error) {
 	panic("should never be called")
 }

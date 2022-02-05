@@ -1,4 +1,5 @@
 // MIT license · Daniel T. Gorski · dtg [at] lengo [dot] org · 10/2020
+//               Gregor Noczinski · gregor [at] noczinski [dot] eu · 12/2021
 
 package jsonlex
 
@@ -68,8 +69,10 @@ var (
 //   a) when the yield function return false
 //   b) after emitting a jsonlex.TokenEOF or jsonlex.TokenERR
 //
-// The Scan() function is reentrant, subsequent invocations
-// will continue to consume the available byte stream.
+// Important: The Scan() function is reentrant, subsequent invocations will
+// continue to consume the available byte stream as long as you provide
+// a reader that implements an UnreadByte() interface, and you configure
+// the Lexer with the LexerOptEnableUnreadBuffer option activated.
 func (l *Lexer) Scan(r io.Reader) {
 	var (
 		b   byte      // byte under scrutiny

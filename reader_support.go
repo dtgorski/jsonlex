@@ -1,3 +1,5 @@
+// MIT license · Gregor Noczinski · gregor [at] noczinski [dot] eu · 12/2021
+
 package jsonlex
 
 import (

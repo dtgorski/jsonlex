@@ -1,4 +1,5 @@
 // MIT license · Daniel T. Gorski · dtg [at] lengo [dot] org · 10/2020
+//               Gregor Noczinski · gregor [at] noczinski [dot] eu · 12/2021
 
 package jsonlex
 

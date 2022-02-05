@@ -70,6 +70,8 @@ func main() {
 }
 ```
 
+Please note, that the ```Scan()``` function is reentrant and subsequent invocations will continue to consume the available byte stream _as long as you provide_ a reader that implements an ```UnreadByte() error``` interface, and you [configure the Lexer with the ```LexerOptEnableUnreadBuffer``` option](https://pkg.go.dev/github.com/dtgorski/jsonlex#NewLexer) activated.
+
 ### Emitted tokens
 | [```jsonlex```](https://pkg.go.dev/github.com/dtgorski/jsonlex) | Representation
 | --- | ---
